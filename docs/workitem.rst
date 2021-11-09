@@ -172,6 +172,18 @@ Enums can be configured so that multiple options can be selected. This is not su
     enum_array.EnumOptionId.append(client.EnumOptionIdType(id='done'))
     workitem1.setCustomField('multi_enum_field', enum_array)
 
+Work item history
+^^^^^^^^^^^^^^^^^
+
+A workitem can be queried for its history to investigate change sets and determine workitem revisions. The returned change
+sets can be filtered by excluding certain fields. Note that if the 'updated' field is part of every change set (if not
+explicitly filtered) apart from the creation change set.
+
+.. code:: python
+
+    changes = workitem.getHistory()
+    changes_without_description = workitem.getHistory(['description', 'updated'])
+
 Disabled features in Polarion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

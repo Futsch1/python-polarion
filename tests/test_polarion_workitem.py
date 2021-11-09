@@ -438,3 +438,20 @@ class TestPolarionWorkitem(unittest.TestCase):
 
         self.assertEqual(executed_workitem_1.resolution.id, 'incomplete', msg='Resolution not as set')
         self.assertEqual(checking_workitem_1.resolution.id, 'incomplete', msg='Resolution not as set')
+
+    def test_history(self):
+        executed_workitem_1 = self.executing_project.createWorkitem('task')
+
+        changes = executed_workitem_1.getHistory()
+        self.assertEqual(1, len(changes))
+        self.assertTrue(changes[0].creation)
+
+        executed_workitem_1.title = 'Changed title'
+        executed_workitem_1.save()
+        executed_workitem_1.setDescription('Changed description')
+
+        changes = executed_workitem_1.getHistory()
+        self.assertEqual(3, len(changes))
+
+        changes = executed_workitem_1.getHistory(['updated', 'title'])
+        self.assertEqual(2, len(changes))
