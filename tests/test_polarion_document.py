@@ -89,7 +89,7 @@ class TestPolarionWorkitem(unittest.TestCase):
         self.assertTrue(checking_document.autoSuspect, 'Saving document settings failed')
 
     def test_get_spaces(self):
-        self.assertListEqual(['_default'], self.checking_project.getDocumentSpaces())
+        self.assertIn('_default', self.checking_project.getDocumentSpaces())
         document_titles = [document.title for document in self.checking_project.getDocumentsInSpace('_default')]
         self.assertIn('Test title', document_titles)
 
