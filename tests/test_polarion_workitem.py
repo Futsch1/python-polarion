@@ -5,7 +5,7 @@ from polarion.project import Project
 from keys import polarion_user, polarion_password, polarion_url, polarion_project_id
 from time import sleep
 from datetime import datetime
-import mock
+from unittest import mock
 from polarion.factory import createFromUri
 from filecmp import cmp
 from shutil import copyfile
@@ -34,6 +34,18 @@ class TestPolarionWorkitem(unittest.TestCase):
 
         self.assertEqual(executed_workitem, checking_workitem,
                          msg='Workitems not identical')
+
+        # Check that fields can be supplied with the call
+        executed_workitem = self.executing_project.createWorkitem('task', new_workitem_fields={'title': 'Test title!'})
+        checking_workitem = self.checking_project.getWorkitem(
+            executed_workitem.id)
+
+        self.assertEqual(executed_workitem, checking_workitem,
+                         msg='Workitems not identical when created with supplied fields')
+
+        # Check that fields are checks for validity
+        with self.assertRaises(Exception):
+            executed_workitem = self.executing_project.createWorkitem('task', new_workitem_fields={'wrong-field': 'what happens?'})
 
     def test_title_change(self):
         executed_workitem = self.global_workitem

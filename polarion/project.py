@@ -41,7 +41,10 @@ class Project(object):
         service = self.polarion.getService('Project')
         project_users = service.getProjectUsers(self.id)
         for user in project_users:
-            users.append(User(self.polarion, user))
+            try:
+                users.append(User(self.polarion, user))
+            except Exception:
+                print (f"Could not retrieve {user['name']} from server")
         return users
 
     def findUser(self, name):
@@ -73,15 +76,63 @@ class Project(object):
         return Plan(self.polarion, self, id=id)
 
     def createPlan(self, new_plan_name, new_plan_id, new_plan_template, new_plan_parent=None):
+        """
+        Create a plan based on a template, plan name and plan ID.
+        :param new_plan_name: The new plan name
+        :param new_plan_id: The new plan ID
+        :param new_plan_template: The plan template to use. Defaults are 'release' and 'iteration'. But this depends on
+         the project configuration.
+        :param new_plan_parent: Optionally the parent plan
+        :return: A new plan
+        :rtype: Plan
+        """
         return Plan(self.polarion, self, new_plan_name=new_plan_name, new_plan_id=new_plan_id, new_plan_template=new_plan_template,
                     new_plan_parent=new_plan_parent)
 
-    def createWorkitem(self, workitem_type: str):
-        return Workitem(self.polarion, self, new_workitem_type=workitem_type)
+    def searchPlan(self, query='', order='Created', limit=-1):
+        """Query for available plans. This will return the polarion data structures.
+
+        :param query: The query to use while searching
+        :param order: Order by
+        :param limit: The limit of plans, -1 for no limit
+        :return: The search results
+        :rtype: dict[]
+        """
+        query += f' AND project.id:{self.id}'
+        service = self.polarion.getService('Planning')
+        return service.searchPlans(query, order, limit)
+
+    def searchPlanFullItem(self, query='', order='Created', limit=-1):
+        """Query for available plans. This will query for the plans and then fetch all result. May take a while for a big search with many results.
+
+        :param query: The query to use while searching
+        :param order: Order by
+        :param limit: The limit of plans, -1 for no limit
+        :return: The search results
+        :rtype: Plan[]
+        """
+        return_list = []
+        plans = self.searchPlan(query, order, limit)
+        for plan in plans:
+            return_list.append(Plan(self.polarion, self, polarion_record=plan))
+        return return_list
+
+
+    def createWorkitem(self, workitem_type: str, new_workitem_fields=None):
+        """
+        Create a workitem based on the workitem type.
+        :param workitem_type: The new workitem type
+        :return: A new workitem
+        :rtype: Workitem
+        """
+        return Workitem(self.polarion, self, new_workitem_type=workitem_type, new_workitem_fields=new_workitem_fields)
 
     def searchWorkitem(self, query='', order='Created', field_list=None, limit=-1):
         """Query for available workitems. This will only query for the items.
         If you also want the Workitems to be retrieved, used searchWorkitemFullItem.
+
+        For retrieving custom field using field_list, use the following syntax:
+        field_list=['customFields.<key of custom field here>']
         
         :param query: The query to use while searching
         :param order: Order by
@@ -101,6 +152,9 @@ class Project(object):
     def searchWorkitemInBaseline(self, baselineRevision, query='', sort='uri', field_list=None, limit=-1):
         """Query for available workitems in a baseline. This will only query for the items.
         If you also want the Workitems to be retrieved, used searchWorkitemFullItemInBaseline.
+
+        For retrieving custom field using field_list, use the following syntax:
+        field_list=['customFields.<key of custom field here>']
 
         :param baselineRevision: The revision number of the baseline to search in
         :param query: The query to use while searching
@@ -148,7 +202,7 @@ class Project(object):
         workitems = self.searchWorkitemInBaseline(baselineRevision, query, sort, ['id'], limit)
         for workitem in workitems:
             return_list.append(
-                Workitem(self.polarion, self, workitem.id))
+                Workitem(self.polarion, self, uri=workitem.uri))
         return return_list
 
     def getTestRun(self, id: str):
