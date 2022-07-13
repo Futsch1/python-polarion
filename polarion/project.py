@@ -281,6 +281,10 @@ class Project(object):
         service = self.polarion.getService('Tracker')
         uri = service.createDocument(self.id, location, name, title, allowed_workitem_ids, structure_link_role_id, home_page_content)
         return Document(self.polarion, self, uri)
+    
+    def createFolder(self, parent_name, name, title):
+        service = self.polarion.getService('Tracker')
+        service.createFolder(self.id, parent_name, name, title)
 
     def getDocumentSpaces(self):
         """
@@ -289,6 +293,15 @@ class Project(object):
         """
         service = self.polarion.getService('Tracker')
         spaces = service.getDocumentSpaces(self.id)
+        return sorted(spaces)
+    
+    def getWikiSpaces(self):
+        """
+        Get a list al all wiki spaces.
+        :return:string[]
+        """
+        service = self.polarion.getService('Tracker')
+        spaces = service.getWikiSpaces(self.id)
         return sorted(spaces)
 
     def getDocumentLocations(self):
