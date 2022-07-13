@@ -375,6 +375,21 @@ class Workitem(CustomFields, Comments):
         if self._parsed_test_steps is not None:
             return len(self._parsed_test_steps) > 0
         return False
+    
+    def getTestSteps(self):
+        return self._parsed_test_steps
+
+    def setTestSteps(self, test_steps):
+        polarion_test_steps = []
+        for test_step in test_steps:
+            step = {'values': {'Text': []}}
+            for key in self._polarion_test_steps['keys']['EnumOptionId']:
+                text = {'type': 'text/html', 'contentLossy': False, 'content': test_step[key.id]}
+                step['values']['Text'].append(text)
+            polarion_test_steps.append(step)
+
+        service_test = self._polarion.getService('TestManagement')
+        service_test.setTestSteps(self.uri, polarion_test_steps)
 
     def addHyperlink(self, url, hyperlink_type: HyperlinkRoles):
         """
