@@ -550,6 +550,14 @@ class Workitem(CustomFields, Comments):
         service.moveWorkItemToDocument(self.uri, document.uri, parent.uri if parent is not None else xsd.const.Nil, -1,
                                        False)
 
+    def getHistory(self, ignored_fields=None):
+        if ignored_fields is None:
+            ignored_fields = xsd.const.Nil
+
+        service = self._polarion.getService('Tracker')
+        changes = service.generateHistory(self.uri, ignored_fields, xsd.const.Nil)
+        return changes
+        
     def save(self):
         """
         Update the workitem in polarion
